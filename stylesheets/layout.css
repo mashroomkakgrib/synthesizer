@@ -1,0 +1,411 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --black: #242424;
+  --white: #dedede;
+}
+
+body {
+  width: 100vw;
+  height: 65vw;
+  /* background-image: url('../images/MacBook\ Air\ -\ 1.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center; */
+  background: var(--white);
+  font-family: 'Menoe Grotesque', monospace;
+}
+
+.bk {
+  position: absolute;
+  width: 100vw;
+  height: 65vw;
+  opacity: 50%;
+}
+
+h1 {
+  font-size: 1.8vw;
+  color: var(--black);
+}
+
+h2 {
+  font-size: 1vw;
+  color: var(--black);
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  top: 5.4vw;
+}
+
+.x-up-right {
+  position: relative;
+  top: 8.2vw;
+  left: 11vw;
+  width: 2vw;
+  height: 2vw;
+}
+
+.x-up-left {
+  position: relative;
+  top: 8.2vw;
+  left: 84.2vw;
+  width: 2vw;
+  height: 2vw;
+}
+
+.x-down-right {
+  position: relative;
+  top: 3.2vw;
+  left: 11vw;
+  width: 2vw;
+  height: 2vw;
+}
+
+.x-down-left {
+  position: relative;
+  top: 3.2vw;
+  left: 84.2vw;
+  width: 2vw;
+  height: 2vw;
+}
+
+.pressure {
+  width: 74.6vw;
+  height: 13.9vw;
+  display: flex;
+  position: relative;
+  top: 6vw;
+  left: 12.6vw;
+}
+
+.pressure .number {
+  position: relative;
+  top: 1.2vw;
+  left: 0.8vw;
+}
+
+.pressure .name {
+  position: relative;
+  top: 1.2vw;
+  left: 3vw;
+}
+
+.pressure .description {
+  position: relative;
+  top: 1.2vw;
+  left: 5.4vw;
+}
+
+/* .pressure .button-start {
+  width: 4vw;
+  height: 4vw;
+  position: relative;
+  top: 1.2vw;
+  left: 20.7vw;
+} */
+
+.button-start {
+  width: 4vw;
+  height: 4vw;
+}
+
+.button-start-icon {
+  width: 4vw;
+  height: 4vw;
+}
+
+.button-stop {
+  width: 4vw;
+  height: 4vw;
+}
+
+.button-stop-icon {
+  width: 4vw;
+  height: 4vw;
+}
+
+.pressure .button-start {
+  position: relative;
+  top: 1.2vw;
+  left: 20.7vw;
+}
+
+.pressure .button-stop {
+  position: relative;
+  top: 1.2vw;
+  left: 22vw;
+}
+
+.button-wv-icon {
+  position: relative;
+  left: -3vw;
+  width: 1.8vw;
+  height: 1.8vw;
+}
+
+.button-wv-text {
+  position: relative;
+  top: -2vw;
+  left: 2vw;
+}
+
+.button-wv-1,
+.button-wv-2,
+.button-wv-3,
+.button-wv-4 {
+  width: 7.8vw;
+  height: 1.8vw;
+}
+
+.pressure .button-wv-1 {
+  position: relative;
+  top: 7.7vw;
+  left: -30.7vw;
+}
+
+.pressure .button-wv-2 {
+  position: relative;
+  top: 10.7vw;
+  left: -38.5vw;
+}
+
+.pressure .button-wv-3 {
+  position: relative;
+  top: 7.7vw;
+  left: -34.1vw;
+}
+
+.pressure .button-wv-4 {
+  position: relative;
+  top: 10.7vw;
+  left: -41.8vw;
+}
+
+.button-echo {
+  position: relative;
+  top: 3vw;
+  left: -6vw;
+  width: 3vw;
+  height: 1.8vw;
+}
+
+.button-echo-text {
+  text-align: left;
+}
+
+.button-turbulence {
+  position: relative;
+  top: 10.6vw;
+  left: -9vw;
+  width: 9.8vw;
+  height: 1.8vw;
+}
+
+.button-turbulence-text {
+  text-align: left;
+}
+
+.wind {
+  width: 74.6vw;
+  height: 13.9vw;
+  display: flex;
+  position: relative;
+  top: 6vw;
+  left: 12.6vw;
+}
+
+.wind .number {
+  position: relative;
+  top: 1.5vw;
+  left: 0.8vw;
+}
+
+.wind .name {
+  position: relative;
+  top: 1.5vw;
+  left: 3.7vw;
+}
+
+.wind .description {
+  position: relative;
+  top: 1.2vw;
+  left: 5.4vw;
+}
+
+.wind .button-start {
+  position: relative;
+  top: 1.2vw;
+  left: 26.2vw;
+}
+
+.wind .button-stop {
+  position: relative;
+  top: 1.2vw;
+  left: 27.5vw;
+}
+
+.wind .button-wv-1 {
+  position: relative;
+  top: 7.7vw;
+  left: -25vw;
+}
+
+.wind .button-wv-2 {
+  position: relative;
+  top: 10.7vw;
+  left: -32.7vw;
+}
+
+.wind .button-wv-3 {
+  position: relative;
+  top: 7.7vw;
+  left: -29vw;
+}
+
+.wind .button-wv-4 {
+  position: relative;
+  top: 10.7vw;
+  left: -36.7vw;
+}
+
+.button-pulse {
+  position: relative;
+  top: -3vw;
+  left: -1.2vw;
+}
+
+.button-pulse-text {
+  text-align: left;
+}
+
+.button-space {
+  position: relative;
+  top: 5vw;
+  left: -6.2vw;
+}
+
+.button-space-text {
+  text-align: left;
+}
+
+.precipitation {
+  width: 74.1vw;
+  height: 19.6vw;
+  display: flex;
+  position: relative;
+  top: 6vw;
+  left: 12.6vw;
+}
+
+.precipitation .number {
+  position: relative;
+  top: 1.5vw;
+  left: 0.8vw;
+}
+
+.precipitation .name {
+  position: relative;
+  top: 1.5vw;
+  left: 3.7vw;
+}
+
+.precipitation .description {
+  position: relative;
+  top: 1.2vw;
+  left: 5.4vw;
+}
+
+.precipitation .button-start {
+  position: relative;
+  top: 1.2vw;
+  left: 14.4vw;
+}
+
+.precipitation .button-stop {
+  position: relative;
+  top: 1.2vw;
+  left: 15.6vw;
+}
+
+.prc-sequencer {
+  position: absolute;
+
+  top: 7vw;
+  left: 1vw;
+
+  width: 70vw;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 1.4vw;
+}
+
+.prc-row {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+}
+
+.prc-label {
+  width: 18vw;
+  flex-shrink: 0;
+
+  font-size: 1.5vw;
+  color: var(--black);
+}
+
+.prc-steps {
+  display: grid;
+
+  grid-template-columns: repeat(8, 2.5vw);
+
+  gap: 1.5vw;
+}
+
+.prc-step {
+  width: 2.5vw;
+  height: 2.5vw;
+
+  border: 0.15vw solid var(--black);
+
+  background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.prc-step.active {
+  background: var(--black);
+}
+
+.prc-step.playing {
+  outline: 0.15vw solid var(--black);
+  outline-offset: 0.3vw;
+}
+
+.prc-step.active.playing {
+  background: var(--black);
+  opacity: 0.65;
+}
