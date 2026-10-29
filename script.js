@@ -1,898 +1,210 @@
-//код написан с помощью chat gpt
-
-Tone.Transport.bpm.value = 96;
+Tone.Transport.bpm.value = 95;
 Tone.Transport.timeSignature = 4;
 
-Tone.Destination.volume.value = -6;
+const master = new Tone.Gain(0.65).toDestination();
 
-const playing = {
-  pressure: false,
-  pressurePlus: false,
-  wind: false,
-  windPlus: false,
-  precipitation: false
-};
+const GLOBAL_FADE_IN = 1.5;
+const GLOBAL_FADE_OUT = 2;
 
-let echoEnabled = false;
-let turbulenceEnabled = false;
-let pulseEnabled = false;
-let spaceEnabled = false;
+const PRC_FADE_OUT = 0.7;
 
-function getNextStartTime() {
-  if (Tone.Transport.state !== 'started') {
-    return 0;
-  }
+const PRC_TARGET_VOLUME = 0.25;
 
-  return Tone.Transport.nextSubdivision('8n');
-}
-
-async function startInstrument(key, sequence) {
-  if (playing[key]) return;
-
-  playing[key] = true;
-
-  try {
-    await Tone.start();
-
-    const startTime = getNextStartTime();
-
-    sequence.start(startTime);
-
-    if (Tone.Transport.state !== 'started') {
-      Tone.Transport.start();
-    }
-  } catch (error) {
-    playing[key] = false;
-
-    console.error(`Ошибка запуска ${key}:`, error);
-  }
-}
-
-function stopInstrument(key, sequence, synth) {
-  if (!playing[key]) return;
-
-  playing[key] = false;
-
-  sequence.stop();
-
-  if (synth) {
-    synth.releaseAll();
-  }
-
-  stopTransportIfIdle();
-}
-
-function stopTransportIfIdle() {
-  const anythingPlaying = Object.values(playing).some(Boolean);
-
-  if (!anythingPlaying) {
-    Tone.Transport.stop();
-    Tone.Transport.position = 0;
-  }
-}
-
-function createMelodySequence(
-  synth,
-  melody,
-  duration,
-  velocity,
-  getTranspose = () => 0
-) {
-  const sequence = new Tone.Sequence(
-    (time, note) => {
-      if (note === null) return;
-
-      const transpose = getTranspose();
-
-      const finalNote = transpose
-        ? Tone.Frequency(note).transpose(transpose).toNote()
-        : note;
-
-      synth.triggerAttackRelease(finalNote, duration, time, velocity);
-    },
-
-    melody,
-
-    '4n'
-  );
-
-  sequence.loop = true;
-
-  return sequence;
-}
-
-const delay1 = new Tone.FeedbackDelay({
+const pressureEcho = new Tone.FeedbackDelay({
   delayTime: '8n',
-  feedback: 0.28,
+  feedback: 0.35,
   wet: 0
-});
+}).connect(master);
 
-const distortion1 = new Tone.Distortion({
-  distortion: 0.55,
-  oversample: '4x',
+const windEcho = new Tone.FeedbackDelay({
+  delayTime: '4n',
+  feedback: 0.3,
   wet: 0
-});
+}).connect(master);
 
-const vibrato1 = new Tone.Vibrato({
-  frequency: 1.5,
-  depth: 0.08,
-  wet: 0
-});
+const pressureMainVolume = new Tone.Gain(0).connect(pressureEcho);
+const pressureExtraVolume = new Tone.Gain(0).connect(pressureEcho);
 
-const tremolo1 = new Tone.Tremolo({
-  frequency: 4,
-  depth: 0.35,
-  wet: 0
-}).start();
+const windMainVolume = new Tone.Gain(0).connect(windEcho);
+const windExtraVolume = new Tone.Gain(0).connect(windEcho);
 
-const filter1 = new Tone.Filter({
-  frequency: 12000,
-  type: 'lowpass',
-  rolloff: -12
-});
+const prcVolume = new Tone.Gain(PRC_TARGET_VOLUME).connect(master);
 
-const chorus1 = new Tone.Chorus({
-  frequency: 0.35,
-  delayTime: 4,
-  depth: 0.3,
-  wet: 0
-}).start();
-
-const reverb1 = new Tone.Reverb({
-  decay: 3.5,
-  wet: 0.22
-});
-
-const synth1 = new Tone.PolySynth(Tone.Synth, {
-  oscillator: {
-    type: 'sine'
-  },
-
-  envelope: {
-    attack: 0.18,
-    decay: 0.3,
-    sustain: 0.65,
-    release: 2.5
-  },
-
-  volume: -11
-});
-
-synth1.connect(chorus1);
-chorus1.connect(vibrato1);
-vibrato1.connect(tremolo1);
-tremolo1.connect(distortion1);
-distortion1.connect(filter1);
-filter1.connect(delay1);
-delay1.connect(reverb1);
-reverb1.toDestination();
-
-const melody1 = [
-  'A4',
-  null,
-  'C5',
-  'E5',
-  'B4',
-  null,
-  'A4',
-  null,
-  'G4',
-  'A4',
-  'C5',
-  null,
-  'E5',
-  null,
-  'C5',
-  null,
-
-  'A4',
-  null,
-  'C5',
-  'E5',
-  'F5',
-  null,
-  'E5',
-  null,
-  'C5',
-  'A4',
-  'G4',
-  null,
-  'A4',
-  null,
-  'C5',
-  null,
-
-  'G4',
-  null,
-  'B4',
-  'C5',
-  'E5',
-  null,
-  'G5',
-  null,
-  'E5',
-  'D5',
-  'C5',
-  null,
-  'B4',
-  null,
-  'G4',
-  null,
-
-  'G4',
-  null,
-  'B4',
-  'D5',
-  'E5',
-  null,
-  'D5',
-  null,
-  'B4',
-  'G4',
-  'E4',
-  null,
-  'G4',
-  null,
-  'A4',
-  null
-];
-
-const pressureSection = document.querySelector('.pressure');
-
-const waveButtons1 = [
-  pressureSection.querySelector('.button-wv-1'),
-  pressureSection.querySelector('.button-wv-2')
-];
-
-const waveSettings1 = [
-  {
-    type: 'sine',
-    transpose: 0,
-    attack: 0.18,
-    release: 2.5,
-    chorus: 0,
-    filter: 12000
-  },
-
-  {
-    type: 'sine',
-    transpose: -12,
-    attack: 0.65,
-    release: 4,
-    chorus: 0.55,
-    filter: 6500
-  }
-];
-
-let currentWave1 = waveSettings1[0];
-
-const sequence1 = createMelodySequence(
-  synth1,
-  melody1,
-  '8n',
-  0.8,
-  () => currentWave1.transpose
-);
-
-const play1 = document.getElementById('play1');
-const stop1 = document.getElementById('stop1');
-
-play1.addEventListener('click', async () => {
-  await startInstrument('pressure', sequence1);
-});
-
-stop1.addEventListener('click', () => {
-  stopInstrument('pressure', sequence1, synth1);
-});
-
-waveButtons1.forEach((button, index) => {
-  button.addEventListener('click', () => {
-    currentWave1 = waveSettings1[index];
-
-    synth1.set({
-      oscillator: {
-        type: currentWave1.type
-      },
-
-      envelope: {
-        attack: currentWave1.attack,
-        decay: 0.3,
-        sustain: 0.65,
-        release: currentWave1.release
-      }
-    });
-
-    chorus1.wet.rampTo(currentWave1.chorus, 0.4);
-
-    if (!turbulenceEnabled) {
-      filter1.frequency.rampTo(currentWave1.filter, 0.4);
-    }
-
-    waveButtons1.forEach((btn) => {
-      btn.classList.remove('active');
-    });
-
-    button.classList.add('active');
-  });
-});
-
-waveButtons1[0].classList.add('active');
-
-const echoButton = pressureSection.querySelector('.button-echo');
-
-echoButton.addEventListener('click', () => {
-  echoEnabled = !echoEnabled;
-
-  delay1.wet.rampTo(echoEnabled ? 0.45 : 0, 0.3);
-
-  echoButton.classList.toggle('active', echoEnabled);
-});
-
-const turbulenceButton = pressureSection.querySelector('.button-turbulence');
-
-turbulenceButton.addEventListener('click', () => {
-  turbulenceEnabled = !turbulenceEnabled;
-
-  distortion1.wet.rampTo(turbulenceEnabled ? 0.65 : 0, 0.5);
-
-  vibrato1.wet.rampTo(turbulenceEnabled ? 0.4 : 0, 0.5);
-
-  tremolo1.wet.rampTo(turbulenceEnabled ? 0.35 : 0, 0.5);
-
-  filter1.frequency.rampTo(turbulenceEnabled ? 2400 : currentWave1.filter, 0.6);
-
-  turbulenceButton.classList.toggle('active', turbulenceEnabled);
-});
-
-const pressurePlusFilter = new Tone.Filter({
-  frequency: 4300,
-  type: 'lowpass',
-  rolloff: -12
-});
-
-const pressurePlusChorus = new Tone.Chorus({
-  frequency: 0.28,
-  delayTime: 5,
-  depth: 0.55,
-  wet: 0.45
-}).start();
-
-const pressurePlusVibrato = new Tone.Vibrato({
-  frequency: 2.2,
-  depth: 0.09,
-  wet: 0.35
-});
-
-const pressurePlusDelay = new Tone.FeedbackDelay({
-  delayTime: '4n.',
-  feedback: 0.22,
-  wet: 0.2
-});
-
-const pressurePlusReverb = new Tone.Reverb({
-  decay: 5.5,
-  wet: 0.4
-});
-
-const pressurePlusSynth = new Tone.PolySynth(Tone.Synth, {
+const pressureMainSynth = new Tone.MonoSynth({
   oscillator: {
     type: 'triangle'
   },
 
   envelope: {
-    attack: 0.4,
-    decay: 0.45,
-    sustain: 0.65,
-    release: 3.8
+    attack: 0.01,
+    decay: 0.2,
+    sustain: 0.2,
+    release: 0.3
   },
 
-  volume: -12
-});
-
-pressurePlusSynth.connect(pressurePlusFilter);
-pressurePlusFilter.connect(pressurePlusChorus);
-pressurePlusChorus.connect(pressurePlusVibrato);
-pressurePlusVibrato.connect(pressurePlusDelay);
-pressurePlusDelay.connect(pressurePlusReverb);
-pressurePlusReverb.toDestination();
-
-const pressurePlusMelody = [
-  null,
-  null,
-  'E5',
-  null,
-  'A5',
-  null,
-  null,
-  'G5',
-  null,
-  'E5',
-  null,
-  'B5',
-  null,
-  'A5',
-  'G5',
-  null,
-
-  null,
-  'C6',
-  null,
-  'A5',
-  null,
-  null,
-  'E5',
-  'F5',
-  'A5',
-  null,
-  'G5',
-  null,
-  'E5',
-  null,
-  null,
-  'C5',
-
-  null,
-  'B5',
-  null,
-  'G5',
-  'E5',
-  null,
-  null,
-  'D5',
-  null,
-  'G5',
-  'C6',
-  null,
-  'B5',
-  null,
-  'G5',
-  null,
-
-  'B5',
-  null,
-  'G5',
-  null,
-  'D5',
-  'E5',
-  null,
-  null,
-  'G5',
-  null,
-  'B5',
-  'A5',
-  null,
-  'E5',
-  null,
-  null
-];
-
-const pressurePlusSequence = createMelodySequence(
-  pressurePlusSynth,
-  pressurePlusMelody,
-  '4n',
-  0.72
-);
-
-const pressurePlusButton = pressureSection.querySelector('.button-wv-3');
-
-const pressureMinusButton = pressureSection.querySelector('.button-wv-4');
-
-pressurePlusButton.addEventListener('click', async () => {
-  await startInstrument('pressurePlus', pressurePlusSequence);
-
-  if (playing.pressurePlus) {
-    pressurePlusButton.classList.add('active');
+  filterEnvelope: {
+    attack: 0.01,
+    decay: 0.2,
+    sustain: 0.2,
+    release: 0.3,
+    baseFrequency: 300,
+    octaves: 2
   }
-});
+}).connect(pressureMainVolume);
 
-pressureMinusButton.addEventListener('click', () => {
-  stopInstrument('pressurePlus', pressurePlusSequence, pressurePlusSynth);
+const pressureExtraReverb = new Tone.Reverb({
+  decay: 2.8,
+  preDelay: 0.025,
+  wet: 0.28
+}).connect(pressureExtraVolume);
 
-  pressurePlusButton.classList.remove('active');
-});
+const pressureExtraFilter = new Tone.Filter({
+  type: 'lowpass',
+  frequency: 6500,
+  rolloff: -12
+}).connect(pressureExtraReverb);
 
-const chorus2 = new Tone.Chorus({
+const pressureExtraChorus = new Tone.Chorus({
   frequency: 0.25,
-  delayTime: 5,
-  depth: 0.35,
-  wet: 0.3
-}).start();
+  delayTime: 2.5,
+  depth: 0.12,
+  wet: 0.12
+}).connect(pressureExtraFilter);
 
-const filter2 = new Tone.Filter({
-  frequency: 6000,
-  type: 'lowpass',
-  rolloff: -12
-});
+pressureExtraChorus.start();
 
-const tremolo2 = new Tone.Tremolo({
-  frequency: 2,
-  depth: 0.45,
-  wet: 0
-}).start();
-
-const reverb2 = new Tone.Reverb({
-  decay: 6,
-  wet: 0.3
-});
-
-const widener2 = new Tone.StereoWidener({
-  width: 0.5
-});
-
-const synth2 = new Tone.PolySynth(Tone.Synth, {
-  oscillator: {
-    type: 'sine'
-  },
-
-  envelope: {
-    attack: 0.7,
-    decay: 0.4,
-    sustain: 0.7,
-    release: 3.5
-  },
-
-  volume: -14
-});
-
-synth2.connect(chorus2);
-chorus2.connect(filter2);
-filter2.connect(tremolo2);
-tremolo2.connect(reverb2);
-reverb2.connect(widener2);
-widener2.toDestination();
-
-const melody2 = [
-  // Am(add9)
-  'A3',
-  null,
-  null,
-  'E4',
-  null,
-  'C4',
-  null,
-  null,
-  'E4',
-  null,
-  'B3',
-  null,
-  'C4',
-  null,
-  null,
-  'E4',
-
-  // Fmaj7
-  'F3',
-  null,
-  null,
-  'C4',
-  null,
-  'A3',
-  null,
-  null,
-  'C4',
-  null,
-  'E4',
-  null,
-  'A3',
-  null,
-  null,
-  'C4',
-
-  // Cmaj7
-  'C4',
-  null,
-  null,
-  'G3',
-  null,
-  'E4',
-  null,
-  null,
-  'G3',
-  null,
-  'B3',
-  null,
-  'E4',
-  null,
-  null,
-  'G3',
-
-  // Em7
-  'E3',
-  null,
-  null,
-  'B3',
-  null,
-  'G3',
-  null,
-  null,
-  'B3',
-  null,
-  'D4',
-  null,
-  'G3',
-  null,
-  null,
-  'E4'
-];
-
-const windSection = document.querySelector('.wind');
-
-const waveButtons2 = [
-  windSection.querySelector('.button-wv-1'),
-  windSection.querySelector('.button-wv-2')
-];
-
-const waveSettings2 = [
-  {
-    type: 'sine',
-    transpose: 0,
-    attack: 0.7,
-    release: 3.5,
-    chorus: 0.3,
-    filter: 6000
-  },
-
-  {
-    type: 'sine',
-    transpose: 12,
-    attack: 0.35,
-    release: 2.5,
-    chorus: 0.45,
-    filter: 10000
-  }
-];
-
-let currentWave2 = waveSettings2[0];
-
-const sequence2 = createMelodySequence(
-  synth2,
-  melody2,
-  '2n',
-  0.65,
-  () => currentWave2.transpose
-);
-
-const play2 = document.getElementById('play2');
-const stop2 = document.getElementById('stop2');
-
-play2.addEventListener('click', async () => {
-  await startInstrument('wind', sequence2);
-});
-
-stop2.addEventListener('click', () => {
-  stopInstrument('wind', sequence2, synth2);
-});
-
-waveButtons2.forEach((button, index) => {
-  button.addEventListener('click', () => {
-    currentWave2 = waveSettings2[index];
-
-    synth2.set({
-      oscillator: {
-        type: currentWave2.type
-      },
-
-      envelope: {
-        attack: currentWave2.attack,
-        decay: 0.4,
-        sustain: 0.7,
-        release: currentWave2.release
-      }
-    });
-
-    chorus2.wet.rampTo(currentWave2.chorus, 0.5);
-
-    filter2.frequency.rampTo(currentWave2.filter, 0.5);
-
-    waveButtons2.forEach((btn) => {
-      btn.classList.remove('active');
-    });
-
-    button.classList.add('active');
-  });
-});
-
-waveButtons2[0].classList.add('active');
-
-const pulseButton = windSection.querySelector('.button-pulse');
-
-pulseButton.addEventListener('click', () => {
-  pulseEnabled = !pulseEnabled;
-
-  tremolo2.wet.rampTo(pulseEnabled ? 0.65 : 0, 0.5);
-
-  pulseButton.classList.toggle('active', pulseEnabled);
-});
-
-const spaceButton = windSection.querySelector('.button-space');
-
-spaceButton.addEventListener('click', () => {
-  spaceEnabled = !spaceEnabled;
-
-  reverb2.wet.rampTo(spaceEnabled ? 0.65 : 0.3, 0.8);
-
-  widener2.width.rampTo(spaceEnabled ? 0.9 : 0.5, 0.8);
-
-  spaceButton.classList.toggle('active', spaceEnabled);
-});
-
-const windPlusFilter = new Tone.Filter({
-  frequency: 7500,
-  type: 'lowpass',
-  rolloff: -12
-});
-
-const windPlusChorus = new Tone.Chorus({
-  frequency: 0.5,
-  delayTime: 3.5,
-  depth: 0.5,
-  wet: 0.5
-}).start();
-
-const windPlusDelay = new Tone.FeedbackDelay({
-  delayTime: '8n.',
-  feedback: 0.25,
-  wet: 0.23
-});
-
-const windPlusReverb = new Tone.Reverb({
-  decay: 5,
-  wet: 0.42
-});
-
-const windPlusWidener = new Tone.StereoWidener({
-  width: 0.8
-});
-
-const windPlusSynth = new Tone.PolySynth(Tone.Synth, {
-  oscillator: {
-    type: 'sine'
-  },
-
-  envelope: {
-    attack: 0.07,
-    decay: 0.25,
-    sustain: 0.5,
-    release: 2.5
-  },
-
-  volume: -15
-});
-
-windPlusSynth.connect(windPlusFilter);
-windPlusFilter.connect(windPlusChorus);
-windPlusChorus.connect(windPlusDelay);
-windPlusDelay.connect(windPlusReverb);
-windPlusReverb.connect(windPlusWidener);
-windPlusWidener.toDestination();
-
-const windPlusMelody = [
-  'E5',
-  'B5',
-  null,
-  'A5',
-  'G5',
-  null,
-  'E5',
-  'C5',
-  null,
-  'B4',
-  'E5',
-  null,
-  'A5',
-  'G5',
-  null,
-  'E5',
-
-  'F5',
-  'A5',
-  null,
-  'C6',
-  'A5',
-  null,
-  'G5',
-  'E5',
-  null,
-  'C5',
-  'F5',
-  'A5',
-  null,
-  'G5',
-  'E5',
-  null,
-
-  'E5',
-  'G5',
-  null,
-  'B5',
-  'C6',
-  null,
-  'G5',
-  'E5',
-  null,
-  'D5',
-  'G5',
-  'B5',
-  null,
-  'G5',
-  'E5',
-  null,
-
-  'D5',
-  'G5',
-  null,
-  'B5',
-  'G5',
-  null,
-  'E5',
-  'D5',
-  null,
-  'B4',
-  'E5',
-  'G5',
-  'A5',
-  null,
-  'E5',
-  null
-];
-
-const windPlusSequence = createMelodySequence(
-  windPlusSynth,
-  windPlusMelody,
-  '8n',
-  0.7
-);
-
-const windPlusButton = windSection.querySelector('.button-wv-3');
-
-const windMinusButton = windSection.querySelector('.button-wv-4');
-
-windPlusButton.addEventListener('click', async () => {
-  await startInstrument('windPlus', windPlusSequence);
-
-  if (playing.windPlus) {
-    windPlusButton.classList.add('active');
-  }
-});
-
-windMinusButton.addEventListener('click', () => {
-  stopInstrument('windPlus', windPlusSequence, windPlusSynth);
-
-  windPlusButton.classList.remove('active');
-});
-
-const thunder = new Tone.MembraneSynth({
-  pitchDecay: 0.12,
-  octaves: 4,
+const pressureExtraSynth = new Tone.PolySynth(Tone.FMSynth, {
+  harmonicity: 2.01,
+  modulationIndex: 1.5,
 
   oscillator: {
     type: 'sine'
   },
 
+  modulation: {
+    type: 'sine'
+  },
+
   envelope: {
-    attack: 0.005,
-    decay: 1.2,
-    sustain: 0,
+    attack: 0.035,
+    decay: 0.65,
+    sustain: 0.08,
     release: 1.5
   },
 
-  volume: -15
-});
+  modulationEnvelope: {
+    attack: 0.01,
+    decay: 0.35,
+    sustain: 0,
+    release: 0.8
+  }
+}).connect(pressureExtraChorus);
 
-const lightning = new Tone.NoiseSynth({
-  noise: {
-    type: 'pink'
+const windMainSynth = new Tone.Synth({
+  oscillator: {
+    type: 'sine'
   },
 
   envelope: {
-    attack: 0.001,
-    decay: 0.12,
-    sustain: 0,
-    release: 0.1
+    attack: 1.8,
+    decay: 0,
+    sustain: 1,
+    release: 1.5
   },
 
-  volume: -22
-});
+  volume: -3
+}).connect(windMainVolume);
+
+const windExtraReverb = new Tone.Reverb({
+  decay: 2.6,
+  preDelay: 0.02,
+  wet: 0.25
+}).connect(windExtraVolume);
+
+const windExtraFilter = new Tone.Filter({
+  type: 'lowpass',
+  frequency: 4800,
+  rolloff: -12
+}).connect(windExtraReverb);
+
+const windExtraChorus = new Tone.Chorus({
+  frequency: 0.32,
+  delayTime: 3,
+  depth: 0.16,
+  wet: 0.14
+}).connect(windExtraFilter);
+
+windExtraChorus.start();
+
+const windExtraSynth = new Tone.PolySynth(Tone.FMSynth, {
+  harmonicity: 1.5,
+  modulationIndex: 0.8,
+
+  oscillator: {
+    type: 'sine'
+  },
+
+  modulation: {
+    type: 'sine'
+  },
+
+  envelope: {
+    attack: 0.06,
+    decay: 0.3,
+    sustain: 0.18,
+    release: 0.9
+  },
+
+  modulationEnvelope: {
+    attack: 0.02,
+    decay: 0.2,
+    sustain: 0,
+    release: 0.4
+  }
+}).connect(windExtraChorus);
+
+const thunderVolume = new Tone.Gain(0.65).connect(prcVolume);
+
+const thunder = new Tone.MembraneSynth({
+  pitchDecay: 0.12,
+  octaves: 3,
+
+  oscillator: {
+    type: 'sine'
+  },
+
+  envelope: {
+    attack: 0.04,
+    decay: 1.2,
+    sustain: 0,
+    release: 1.5
+  }
+}).connect(thunderVolume);
+
+const lightningVolume = new Tone.Gain(0.22).connect(prcVolume);
+
+const lightning = new Tone.MetalSynth({
+  frequency: 280,
+
+  envelope: {
+    attack: 0.001,
+    decay: 0.2,
+    release: 0.15
+  },
+
+  harmonicity: 3.1,
+  modulationIndex: 8,
+  resonance: 1200,
+  octaves: 1
+}).connect(lightningVolume);
+
+const rainVolume = new Tone.Gain(0.35).connect(prcVolume);
+
+const rainFilter = new Tone.Filter({
+  type: 'bandpass',
+  frequency: 1800,
+  Q: 0.8
+}).connect(rainVolume);
 
 const rain = new Tone.NoiseSynth({
   noise: {
@@ -900,159 +212,633 @@ const rain = new Tone.NoiseSynth({
   },
 
   envelope: {
-    attack: 0.001,
-    decay: 0.055,
+    attack: 0.015,
+    decay: 0.18,
     sustain: 0,
-    release: 0.05
+    release: 0.12
+  }
+}).connect(rainFilter);
+
+const pressureMainNotes = [
+  ['0:0:0', 'E3', '2n'],
+  ['0:1:0', 'E3', '2n'],
+  ['0:2:0', 'E3', '4n'],
+  ['0:2:2', 'E3', '4n'],
+  ['0:3:0', 'E3', '2n'],
+
+  ['1:0:0', 'D3', '2n'],
+  ['1:1:0', 'D3', '2n'],
+  ['1:2:0', 'D3', '4n'],
+  ['1:2:2', 'C3', '4n'],
+  ['1:3:0', 'D3', '2n'],
+
+  ['2:0:0', 'E3', '2n'],
+  ['2:1:0', 'E3', '2n'],
+  ['2:2:0', 'E3', '4n'],
+  ['2:2:2', 'E3', '4n'],
+  ['2:3:0', 'E3', '2n'],
+
+  ['3:0:0', 'D3', '2n'],
+  ['3:1:0', 'D3', '2n'],
+  ['3:2:0', 'D3', '4n'],
+  ['3:2:2', 'C3', '4n'],
+  ['3:3:0', 'D3', '2n']
+];
+
+const pressureExtraNotes = [
+  ['0:0:0', 'E5', '4n'],
+  ['0:1:0', 'G5', '8n'],
+  ['0:1:2', 'G5', '8n'],
+  ['0:2:0', 'E5', '4n'],
+  ['0:3:0', 'D5', '4n'],
+
+  ['1:0:0', 'E5', '4n'],
+  ['1:1:0', 'G5', '8n'],
+  ['1:1:2', 'G5', '8n'],
+  ['1:2:0', 'E5', '4n'],
+  ['1:3:0', 'D5', '4n'],
+
+  ['2:0:0', 'G5', '4n'],
+  ['2:1:0', 'A5', '8n'],
+  ['2:1:2', 'G5', '8n'],
+  ['2:2:0', 'E5', '4n'],
+  ['2:3:0', 'D5', '4n'],
+
+  ['3:0:0', 'E5', '4n'],
+  ['3:1:0', 'G5', '8n'],
+  ['3:1:2', 'G5', '8n'],
+  ['3:2:0', 'E5', '4n'],
+  ['3:3:0', 'D5', '4n']
+];
+
+const windMainNotes = [
+  ['0:0:0', 'D3'],
+  ['1:0:0', 'C3'],
+  ['2:0:0', 'D3'],
+  ['3:0:0', 'C3']
+];
+
+const windExtraNotes = [
+  ['0:0:0', 'G4', '8n'],
+  ['0:0:2', 'E4', '8n'],
+  ['0:1:0', 'G4', '8n'],
+  ['0:1:2', 'E4', '8n'],
+  ['0:2:0', 'D4', '4n'],
+  ['0:3:0', 'G4', '8n'],
+  ['0:3:2', 'A4', '16n'],
+  ['0:3:3', 'G4', '16n'],
+
+  ['1:0:0', 'G4', '8n'],
+  ['1:0:2', 'E4', '8n'],
+  ['1:1:0', 'G4', '8n'],
+  ['1:1:2', 'E4', '8n'],
+  ['1:2:0', 'D4', '4n'],
+  ['1:3:0', 'G4', '8n'],
+  ['1:3:2', 'A4', '16n'],
+  ['1:3:3', 'G4', '16n'],
+
+  ['2:0:0', 'A4', '8n'],
+  ['2:0:2', 'G4', '8n'],
+  ['2:1:0', 'A4', '8n'],
+  ['2:1:2', 'G4', '8n'],
+  ['2:2:0', 'E4', '4n'],
+  ['2:3:0', 'G4', '8n'],
+  ['2:3:2', 'A4', '16n'],
+  ['2:3:3', 'G4', '16n'],
+
+  ['3:0:0', 'G4', '8n'],
+  ['3:0:2', 'E4', '8n'],
+  ['3:1:0', 'G4', '8n'],
+  ['3:1:2', 'E4', '8n'],
+  ['3:2:0', 'D4', '4n'],
+  ['3:3:0', 'G4', '8n'],
+  ['3:3:2', 'A4', '16n'],
+  ['3:3:3', 'G4', '16n']
+];
+
+function createPart(synth, notes) {
+  const events = notes.map(([time, note, duration]) => ({
+    time,
+    note,
+    duration
+  }));
+
+  const part = new Tone.Part((time, event) => {
+    synth.triggerAttackRelease(event.note, event.duration, time);
+  }, events);
+
+  part.loop = true;
+  part.loopEnd = '4m';
+  part.start(0);
+
+  return part;
+}
+
+createPart(pressureMainSynth, pressureMainNotes);
+createPart(pressureExtraSynth, pressureExtraNotes);
+createPart(windExtraSynth, windExtraNotes);
+
+const windGlideTime = 1.8;
+let windMainVoiceStarted = false;
+
+const windMainPart = new Tone.Part(
+  (time, event) => {
+    if (!windMainVoiceStarted) {
+      windMainSynth.triggerAttack(event.note, time);
+      windMainVoiceStarted = true;
+    } else {
+      const targetFrequency = Tone.Frequency(event.note).toFrequency();
+
+      windMainSynth.frequency.setTargetAtTime(
+        targetFrequency,
+        time,
+        windGlideTime / 3
+      );
+    }
   },
 
-  volume: -27
-});
+  windMainNotes.map(([time, note]) => ({
+    time,
+    note
+  }))
+);
 
-const thunderFilter = new Tone.Filter({
-  frequency: 350,
-  type: 'lowpass'
-});
+windMainPart.loop = true;
+windMainPart.loopEnd = '4m';
+windMainPart.start(0);
 
-const lightningFilter = new Tone.Filter({
-  frequency: 1800,
-  type: 'bandpass',
-  Q: 0.7
-});
-
-const rainFilter = new Tone.Filter({
-  frequency: 4500,
-  type: 'highpass'
-});
-
-const reverb3 = new Tone.Reverb({
-  decay: 3,
-  wet: 0.25
-});
-
-thunder.connect(thunderFilter);
-thunderFilter.connect(reverb3);
-
-lightning.connect(lightningFilter);
-lightningFilter.connect(reverb3);
-
-rain.connect(rainFilter);
-rainFilter.connect(reverb3);
-
-reverb3.toDestination();
-
-const drumPattern = {
-  thunder: [true, false, false, false, true, false, false, false],
-
-  lightning: [false, false, true, false, false, false, true, false],
-
-  rain: [true, true, true, true, true, true, true, true]
+const prcSteps = {
+  thunder: Array(8).fill(false),
+  lightning: Array(8).fill(false),
+  rain: Array(8).fill(false)
 };
 
-const prcRows = document.querySelectorAll('.prc-row');
+let prcPlaying = false;
+let prcCurrentStep = 0;
 
-prcRows.forEach((row) => {
+let globalStopTimer = null;
+
+const prcSequence = new Tone.Sequence(
+  (time, step) => {
+    prcCurrentStep = step;
+
+    if (!prcPlaying) return;
+
+    if (prcSteps.thunder[step]) {
+      thunder.triggerAttackRelease('C2', '8n', time);
+    }
+
+    if (prcSteps.lightning[step]) {
+      lightning.triggerAttackRelease('16n', time);
+    }
+
+    if (prcSteps.rain[step]) {
+      rain.triggerAttackRelease('16n', time);
+    }
+
+    Tone.Draw.schedule(() => {
+      updatePrcPlayhead(step);
+    }, time);
+  },
+
+  [0, 1, 2, 3, 4, 5, 6, 7],
+  '8n'
+);
+
+prcSequence.start(0);
+
+function updatePrcPlayhead(step) {
+  document.querySelectorAll('.prc-row').forEach((row) => {
+    const cells = row.querySelectorAll('.prc-step');
+
+    cells.forEach((cell, index) => {
+      cell.classList.toggle('is-current', prcPlaying && index === step);
+    });
+  });
+}
+
+document.querySelectorAll('.prc-row').forEach((row) => {
   const instrument = row.dataset.instrument;
+  const cells = row.querySelectorAll('.prc-step');
 
-  const buttons = row.querySelectorAll('.prc-step');
+  if (!Object.prototype.hasOwnProperty.call(prcSteps, instrument)) {
+    return;
+  }
 
-  buttons.forEach((button, index) => {
-    button.classList.toggle('active', drumPattern[instrument][index]);
+  cells.forEach((cell, step) => {
+    cell.setAttribute('aria-pressed', String(prcSteps[instrument][step]));
 
-    button.setAttribute('aria-pressed', String(drumPattern[instrument][index]));
+    cell.addEventListener('click', () => {
+      prcSteps[instrument][step] = !prcSteps[instrument][step];
 
-    button.addEventListener('click', () => {
-      drumPattern[instrument][index] = !drumPattern[instrument][index];
+      const isActive = prcSteps[instrument][step];
 
-      button.classList.toggle('active', drumPattern[instrument][index]);
-
-      button.setAttribute(
-        'aria-pressed',
-        String(drumPattern[instrument][index])
-      );
+      cell.classList.toggle('is-active', isActive);
+      cell.setAttribute('aria-pressed', String(isActive));
     });
   });
 });
 
-const drumSteps = [0, 1, 2, 3, 4, 5, 6, 7];
-
-const drumSequence = new Tone.Sequence(
-  (time, step) => {
-    if (drumPattern.thunder[step]) {
-      thunder.triggerAttackRelease('C1', '8n', time);
-    }
-
-    if (drumPattern.lightning[step]) {
-      lightning.triggerAttackRelease('16n', time);
-    }
-
-    if (drumPattern.rain[step]) {
-      rain.triggerAttackRelease('32n', time);
-    }
-
-    Tone.Draw.schedule(() => {
-      if (!playing.precipitation) return;
-
-      document.querySelectorAll('.prc-step').forEach((button) => {
-        button.classList.remove('playing');
-      });
-
-      prcRows.forEach((row) => {
-        const buttons = row.querySelectorAll('.prc-step');
-
-        buttons[step].classList.add('playing');
-      });
-    }, time);
+const state = {
+  pressure: {
+    main: false,
+    extra: false
   },
 
-  drumSteps,
+  wind: {
+    main: false,
+    extra: false
+  },
 
-  '8n'
-);
+  prc: {
+    playing: false
+  }
+};
 
-drumSequence.loop = true;
+const layerVolumes = new Map([
+  [
+    pressureMainVolume,
+    {
+      id: 'pressure-main-volume',
+      module: 'pressure',
+      layer: 'main',
+      max: 0.4782,
+      value: 0
+    }
+  ],
 
-const play3 = document.getElementById('play3');
-const stop3 = document.getElementById('stop3');
+  [
+    pressureExtraVolume,
+    {
+      id: 'pressure-extra-volume',
+      module: 'pressure',
+      layer: 'extra',
+      max: 1,
+      value: 0
+    }
+  ],
 
-play3.addEventListener('click', async () => {
-  await startInstrument('precipitation', drumSequence);
-});
+  [
+    windMainVolume,
+    {
+      id: 'wind-main-volume',
+      module: 'wind',
+      layer: 'main',
+      max: 0.1788,
+      value: 0
+    }
+  ],
 
-stop3.addEventListener('click', () => {
-  if (!playing.precipitation) return;
+  [
+    windExtraVolume,
+    {
+      id: 'wind-extra-volume',
+      module: 'wind',
+      layer: 'extra',
+      max: 0.8784,
+      value: 0
+    }
+  ]
+]);
 
-  playing.precipitation = false;
+function setLayerVolume(gain, enabled, smoothing = 0.3) {
+  const volume = layerVolumes.get(gain);
 
-  drumSequence.stop();
+  gain.gain.rampTo(enabled ? volume.max * volume.value : 0, smoothing);
+}
 
-  document.querySelectorAll('.prc-step').forEach((button) => {
-    button.classList.remove('playing');
+function updateVolumeMeter(volume) {
+  const input = document.getElementById(volume.id);
+  const meter = input.closest('.meter');
+
+  const percent = Math.round(volume.value * 100);
+
+  input.value = String(percent);
+
+  meter.style.setProperty('--meter-level', percent + '%');
+
+  input.setAttribute('aria-valuetext', percent + '%');
+}
+
+function setVolumePreset(gain, percent, smoothing = 0.3) {
+  const volume = layerVolumes.get(gain);
+
+  volume.value = percent / 100;
+
+  updateVolumeMeter(volume);
+
+  setLayerVolume(gain, state[volume.module][volume.layer], smoothing);
+}
+
+let audioReadyPromise = null;
+
+async function ensureAudioStarted() {
+  if (!audioReadyPromise) {
+    audioReadyPromise = (async () => {
+      await Tone.start();
+
+      if (Tone.Transport.state !== 'started') {
+        Tone.Transport.start();
+      }
+    })().catch((error) => {
+      audioReadyPromise = null;
+      throw error;
+    });
+  }
+
+  return audioReadyPromise;
+}
+
+async function startPressure() {
+  await ensureAudioStarted();
+
+  state.pressure.main = true;
+  setLayerVolume(pressureMainVolume, true);
+
+  syncButtonStates();
+}
+
+function stopPressure() {
+  state.pressure.main = false;
+  setLayerVolume(pressureMainVolume, false);
+
+  syncButtonStates();
+}
+
+async function startPressureExtra() {
+  await ensureAudioStarted();
+
+  state.pressure.extra = true;
+  setLayerVolume(pressureExtraVolume, true);
+
+  syncButtonStates();
+}
+
+function stopPressureExtra() {
+  state.pressure.extra = false;
+  setLayerVolume(pressureExtraVolume, false);
+
+  syncButtonStates();
+}
+
+async function startWind() {
+  await ensureAudioStarted();
+
+  state.wind.main = true;
+  setLayerVolume(windMainVolume, true);
+
+  syncButtonStates();
+}
+
+function stopWind() {
+  state.wind.main = false;
+  setLayerVolume(windMainVolume, false);
+
+  syncButtonStates();
+}
+
+async function startWindExtra() {
+  await ensureAudioStarted();
+
+  state.wind.extra = true;
+  setLayerVolume(windExtraVolume, true);
+
+  syncButtonStates();
+}
+
+function stopWindExtra() {
+  state.wind.extra = false;
+  setLayerVolume(windExtraVolume, false);
+
+  syncButtonStates();
+}
+
+async function startPrc() {
+  await ensureAudioStarted();
+
+  if (globalStopTimer !== null) {
+    clearTimeout(globalStopTimer);
+    globalStopTimer = null;
+  }
+
+  prcPlaying = true;
+  state.prc.playing = true;
+
+  prcVolume.gain.rampTo(PRC_TARGET_VOLUME, 0.3);
+
+  syncButtonStates();
+}
+
+function stopPrc() {
+  if (globalStopTimer !== null) {
+    clearTimeout(globalStopTimer);
+    globalStopTimer = null;
+  }
+
+  prcPlaying = false;
+  state.prc.playing = false;
+
+  prcVolume.gain.rampTo(0, 0.3);
+
+  document.querySelectorAll('.prc-step').forEach((cell) => {
+    cell.classList.remove('is-current');
   });
 
-  stopTransportIfIdle();
+  syncButtonStates();
+}
+
+document.getElementById('play1').addEventListener('click', startPressure);
+
+document.getElementById('stop1').addEventListener('click', stopPressure);
+
+document
+  .getElementById('pressure-increase')
+  .addEventListener('click', startPressureExtra);
+
+document
+  .getElementById('pressure-decrease')
+  .addEventListener('click', stopPressureExtra);
+
+document.getElementById('play2').addEventListener('click', startWind);
+
+document.getElementById('stop2').addEventListener('click', stopWind);
+
+document
+  .getElementById('wind-increase')
+  .addEventListener('click', startWindExtra);
+
+document
+  .getElementById('wind-decrease')
+  .addEventListener('click', stopWindExtra);
+
+document.getElementById('play3').addEventListener('click', startPrc);
+
+document.getElementById('stop3').addEventListener('click', stopPrc);
+
+const echoOnButton = document.getElementById('pressure-echo');
+const echoOffButton = document.getElementById('wind-echo');
+
+let echoEnabled = false;
+
+function setEcho(enabled) {
+  if (echoEnabled === enabled) {
+    syncButtonStates();
+    return;
+  }
+
+  echoEnabled = enabled;
+
+  pressureEcho.wet.rampTo(enabled ? 0.4 : 0, 0.3);
+  windEcho.wet.rampTo(enabled ? 0.4 : 0, 0.3);
+
+  syncButtonStates();
+}
+
+setEcho(false);
+
+echoOnButton.addEventListener('click', async () => {
+  await ensureAudioStarted();
+  setEcho(true);
 });
 
-let audioInitialized = false;
+echoOffButton.addEventListener('click', async () => {
+  await ensureAudioStarted();
+  setEcho(false);
+});
 
-async function initAudio() {
-  await Tone.start();
+const globalPrcPattern = {
+  rain: [true, true, true, true, true, true, true, true],
 
-  if (!audioInitialized) {
-    tremolo1.start();
+  lightning: [true, false, true, true, false, true, true, true],
 
-    chorus1.start();
+  thunder: [false, true, true, false, true, true, false, false]
+};
 
-    pressurePlusChorus.start();
+function applyGlobalPrcPattern() {
+  Object.keys(globalPrcPattern).forEach((instrument) => {
+    prcSteps[instrument] = [...globalPrcPattern[instrument]];
+  });
 
-    chorus2.start();
+  document.querySelectorAll('.prc-row').forEach((row) => {
+    const instrument = row.dataset.instrument;
+    const cells = row.querySelectorAll('.prc-step');
 
-    tremolo2.start();
+    cells.forEach((cell, index) => {
+      const active = prcSteps[instrument][index];
 
-    windPlusChorus.start();
-
-    audioInitialized = true;
-
-    console.log('Аудиосистема ИЗОСИНТА запущена');
-  }
+      cell.classList.toggle('is-active', active);
+      cell.setAttribute('aria-pressed', String(active));
+    });
+  });
 }
+
+document.getElementById('play-all').addEventListener('click', async () => {
+  await ensureAudioStarted();
+
+  if (globalStopTimer !== null) {
+    clearTimeout(globalStopTimer);
+    globalStopTimer = null;
+  }
+
+  state.pressure.main = true;
+
+  setVolumePreset(pressureMainVolume, 60, GLOBAL_FADE_IN);
+
+  state.wind.main = true;
+
+  setVolumePreset(windMainVolume, 40, GLOBAL_FADE_IN);
+
+  state.wind.extra = true;
+
+  setVolumePreset(windExtraVolume, 60, GLOBAL_FADE_IN);
+
+  applyGlobalPrcPattern();
+
+  prcPlaying = true;
+  state.prc.playing = true;
+
+  prcVolume.gain.rampTo(PRC_TARGET_VOLUME, GLOBAL_FADE_IN);
+
+  setEcho(true);
+
+  syncButtonStates();
+});
+
+document.getElementById('stop-all').addEventListener('click', () => {
+  state.pressure.main = false;
+
+  setLayerVolume(pressureMainVolume, false, GLOBAL_FADE_OUT);
+
+  state.wind.main = false;
+  state.wind.extra = false;
+
+  setLayerVolume(windMainVolume, false, GLOBAL_FADE_OUT);
+
+  setLayerVolume(windExtraVolume, false, GLOBAL_FADE_OUT);
+
+  prcVolume.gain.rampTo(0, PRC_FADE_OUT);
+
+  if (globalStopTimer !== null) {
+    clearTimeout(globalStopTimer);
+  }
+
+  globalStopTimer = setTimeout(() => {
+    prcPlaying = false;
+    state.prc.playing = false;
+
+    document.querySelectorAll('.prc-step').forEach((cell) => {
+      cell.classList.remove('is-current');
+    });
+
+    globalStopTimer = null;
+    syncButtonStates();
+  }, PRC_FADE_OUT * 1000);
+
+  setEcho(false);
+
+  syncButtonStates();
+});
+
+function syncButtonStates() {
+  const allMainLayers =
+    state.pressure.main && state.wind.main && state.prc.playing;
+
+  const buttons = [
+    ['play1', state.pressure.main],
+    ['pressure-increase', state.pressure.extra],
+
+    ['play2', state.wind.main],
+    ['wind-increase', state.wind.extra],
+
+    ['play3', state.prc.playing],
+
+    ['play-all', allMainLayers],
+
+    ['pressure-echo', echoEnabled],
+    ['wind-echo', !echoEnabled]
+  ];
+
+  buttons.forEach(([id, enabled]) => {
+    const button = document.getElementById(id);
+
+    button.classList.toggle('is-active', enabled);
+
+    button.setAttribute('aria-pressed', String(enabled));
+  });
+}
+
+syncButtonStates();
+
+layerVolumes.forEach((volume, gain) => {
+  const input = document.getElementById(volume.id);
+
+  input.addEventListener('input', () => {
+    volume.value = Number(input.value) / 100;
+
+    updateVolumeMeter(volume);
+
+    setLayerVolume(gain, state[volume.module][volume.layer], 0.03);
+  });
+
+  updateVolumeMeter(volume);
+});

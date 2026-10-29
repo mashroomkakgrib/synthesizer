@@ -2,7 +2,6 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>ИЗОСИНТ</title>
@@ -15,194 +14,420 @@
 
     <script src="./script.js" defer></script>
   </head>
-
   <body>
-    <img class="x-up-right" src="./images/x.svg" alt="x" />
-    <img class="x-up-left" src="./images/x.svg" alt="x" />
-
     <h1 class="header">ИЗОСИНТ</h1>
+    <img class="х top-left" src="images/x.svg" alt="" />
+    <img class="х top-right" src="images/x.svg" alt="" />
+    <img class="х bottom-left" src="images/x.svg" alt="" />
+    <img class="х bottom-right" src="images/x.svg" alt="" />
 
-    <section class="pressure" id="pressure">
-      <h1 class="number">01</h1>
-      <h1 class="name">ATM.PERS.</h1>
+    <section class="module pressure" id="pressure">
+      <header class="module-header">
+        <span class="number">
+          <img src="images/number-dark.svg" alt="" />
+          <span>01</span>
+        </span>
+        <h2 class="name" id="pressure-name">ATM.PERS.</h2>
+        <p class="description">МОДУЛЬ АТМОСФЕРНОГО<br />ДАВЛЕНИЯ</p>
+        <button class="button-start hover-button" id="play1" type="button">
+          <img class="hover-default" src="images/start-white.svg" alt="" />
+          <img
+            class="hover-alternative"
+            src="images/start-white-2.svg"
+            alt=""
+          />
+        </button>
+        <button class="button-stop hover-button" id="stop1" type="button">
+          <img class="hover-default" src="images/stop-white.svg" alt="" />
+          <img class="hover-alternative" src="images/stop-white-2.svg" alt="" />
+        </button>
+      </header>
+      <div class="module-controls">
+        <button
+          class="wave-control button-wv-1 hover-button"
+          id="pressure-increase"
+          type="button"
+        >
+          <span class="wave-layer hover-default">
+            <img src="images/wv-black.svg" alt="" />
+            <span>[ + ]</span>
+          </span>
+          <span class="wave-layer hover-alternative">
+            <img src="images/wv-black.svg" alt="" />
+            <span>[ + ]</span>
+          </span>
+        </button>
+        <button
+          class="wave-control button-wv-2 hover-button"
+          id="pressure-decrease"
+          type="button"
+        >
+          <span class="wave-layer hover-default">
+            <img src="images/wv-black.svg" alt="" />
+            <span>[ - ]</span>
+          </span>
+          <span class="wave-layer hover-alternative">
+            <img src="images/wv-black.svg" alt="" />
+            <span>[ - ]</span>
+          </span>
+        </button>
+        <div class="meters">
+          <div class="meter">
+            <input
+              class="meter-range"
+              id="pressure-main-volume"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="0"
+            />
+            <span class="meter-fill"></span>
+            <span class="meter-dots">
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+            </span>
+          </div>
+          <div class="meter meter-short">
+            <input
+              class="meter-range"
+              id="pressure-extra-volume"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="0"
+            />
+            <span class="meter-fill"></span>
+            <span class="meter-dots">
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+            </span>
+          </div>
+        </div>
+      </div>
 
-      <h2 class="description">
-        МОДУЛЬ АТМОСФЕРНОГО<br />
-        ДАВЛЕНИЯ
-      </h2>
-
-      <button id="play1" class="button-start">
-        <img
-          class="button-start-icon"
-          src="./images/start-black.svg"
-          alt="start"
-        />
-      </button>
-
-      <button id="stop1" class="button-stop">
-        <img
-          class="button-start-icon"
-          src="./images/stop-black.svg"
-          alt="stop"
-        />
-      </button>
-
-      <button class="button-wv-1">
-        <img class="button-wv-icon" src="./images/wv-black.svg" alt="wv" />
-        <h1 class="button-wv-text">WV.01</h1>
-      </button>
-
-      <button class="button-wv-2">
-        <img class="button-wv-icon" src="./images/wv-black.svg" alt="wv" />
-        <h1 class="button-wv-text">WV.02</h1>
-      </button>
-
-      <button class="button-wv-3">
-        <img class="button-wv-icon" src="./images/wv-black.svg" alt="wv" />
-        <h1 class="button-wv-text">[ + ]</h1>
-      </button>
-
-      <button class="button-wv-4">
-        <img class="button-wv-icon" src="./images/wv-black.svg" alt="wv" />
-        <h1 class="button-wv-text">[ - ]</h1>
-      </button>
-
-      <button class="button-echo">
-        <h2 class="button-echo-text">НАЛИЧИЕ: <br />//эхо</h2>
-      </button>
-
-      <button class="button-turbulence">
-        <h2 class="button-turbulence-text">НАЛИЧИЕ: <br />//турбулентность</h2>
+      <button
+        class="echo-control button-echo hover-button"
+        id="pressure-echo"
+        type="button"
+      >
+        <span class="echo-layer hover-default">
+          <img class="echo-space" src="images/art-echo-s.svg" alt="" />
+          <span class="echo-label">НАЛИЧИЕ:<br /><span>//эхо</span></span>
+        </span>
+        <span class="echo-layer hover-alternative">
+          <img class="echo-space" src="images/art-echo-s-2.svg" alt="" />
+          <span class="echo-label">НАЛИЧИЕ:<br /><span>//эхо</span></span>
+        </span>
       </button>
     </section>
 
-    <section class="wind" id="wind">
-      <h1 class="number">02</h1>
-      <h1 class="name">WIND.</h1>
-
-      <h2 class="description">
-        МОДУЛЬ ВОЗДУШНОГО<br />
-        ПОТОКА
-      </h2>
-
-      <button id="play2" class="button-start">
-        <img
-          class="button-start-icon"
-          src="./images/start-black.svg"
-          alt="start"
-        />
-      </button>
-
-      <button id="stop2" class="button-stop">
-        <img
-          class="button-start-icon"
-          src="./images/stop-black.svg"
-          alt="stop"
-        />
-      </button>
-
-      <button class="button-wv-1">
-        <img class="button-wv-icon" src="./images/wv-black.svg" alt="wv" />
-        <h1 class="button-wv-text">WV.01</h1>
-      </button>
-
-      <button class="button-wv-2">
-        <img class="button-wv-icon" src="./images/wv-black.svg" alt="wv" />
-        <h1 class="button-wv-text">WV.02</h1>
-      </button>
-
-      <button class="button-wv-3">
-        <img class="button-wv-icon" src="./images/wv-black.svg" alt="wv" />
-        <h1 class="button-wv-text">[ + ]</h1>
-      </button>
-
-      <button class="button-wv-4">
-        <img class="button-wv-icon" src="./images/wv-black.svg" alt="wv" />
-        <h1 class="button-wv-text">[ - ]</h1>
-      </button>
-
-      <button class="button-pulse">
-        <h2 class="button-pulse-text">НАЛИЧИЕ: <br />//импульс</h2>
-      </button>
-
-      <button class="button-space">
-        <h2 class="button-space-text">НАЛИЧИЕ: <br />//пространство</h2>
+    <section class="module wind" id="wind">
+      <header class="module-header">
+        <span class="number">
+          <img src="images/number-light.svg" alt="" />
+          <span>02</span>
+        </span>
+        <h2 class="name" id="wind-name">WIND.</h2>
+        <p class="description">МОДУЛЬ ВОЗДУШНОГО<br />ПОТОКА</p>
+        <button class="button-start hover-button" id="play2" type="button">
+          <img class="hover-default" src="images/start-black.svg" alt="" />
+          <img
+            class="hover-alternative"
+            src="images/start-black-2.svg"
+            alt=""
+          />
+        </button>
+        <button class="button-stop hover-button" id="stop2" type="button">
+          <img class="hover-default" src="images/stop-black.svg" alt="" />
+          <img class="hover-alternative" src="images/stop-black-2.svg" alt="" />
+        </button>
+      </header>
+      <div class="module-controls">
+        <button
+          class="wave-control button-wv-1 hover-button"
+          id="wind-increase"
+          type="button"
+        >
+          <span class="wave-layer hover-default">
+            <img src="images/wv-white.svg" alt="" />
+            <span>[ + ]</span>
+          </span>
+          <span class="wave-layer hover-alternative">
+            <img src="images/wv-white.svg" alt="" />
+            <span>[ + ]</span>
+          </span>
+        </button>
+        <button
+          class="wave-control button-wv-2 hover-button"
+          id="wind-decrease"
+          type="button"
+        >
+          <span class="wave-layer hover-default">
+            <img src="images/wv-white.svg" alt="" />
+            <span>[ - ]</span>
+          </span>
+          <span class="wave-layer hover-alternative">
+            <img src="images/wv-white.svg" alt="" />
+            <span>[ - ]</span>
+          </span>
+        </button>
+        <div class="meters">
+          <div class="meter">
+            <input
+              class="meter-range"
+              id="wind-main-volume"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="0"
+            />
+            <span class="meter-fill"></span>
+            <span class="meter-dots">
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+            </span>
+          </div>
+          <div class="meter meter-short">
+            <input
+              class="meter-range"
+              id="wind-extra-volume"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="0"
+            />
+            <span class="meter-fill"></span>
+            <span class="meter-dots">
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+            </span>
+          </div>
+        </div>
+      </div>
+      <button
+        class="echo-control button-echo-stop hover-button"
+        id="wind-echo"
+        type="button"
+      >
+        <span class="echo-layer hover-default">
+          <span class="turbulence-art">
+            <img src="images/art-echo.svg" alt="" />
+          </span>
+          <span class="echo-label">ОТСУТСТВИЕ:<br /><span>//эхо</span></span>
+        </span>
+        <span class="echo-layer hover-alternative">
+          <span class="turbulence-art">
+            <img src="images/art-echo-2.svg" alt="" />
+          </span>
+          <span class="echo-label">ОТСУТСТВИЕ:<br /><span>//эхо</span></span>
+        </span>
       </button>
     </section>
 
-    <section class="precipitation" id="precipitation">
-      <h1 class="number">03</h1>
-      <h1 class="name">PRC.</h1>
-
-      <h2 class="description">МОДУЛЬ ОСАДКОВ</h2>
-
-      <button id="play3" class="button-start">
-        <img
-          class="button-start-icon"
-          src="./images/start-black.svg"
-          alt="start"
-        />
-      </button>
-
-      <button id="stop3" class="button-stop">
-        <img
-          class="button-start-icon"
-          src="./images/stop-black.svg"
-          alt="stop"
-        />
-      </button>
-
+    <section class="module precipitation" id="precipitation">
+      <header class="module-header">
+        <span class="number">
+          <img src="images/number-dark.svg" alt="" />
+          <span>03</span>
+        </span>
+        <h2 class="name" id="precipitation-name">PRC.</h2>
+        <p class="description">МОДУЛЬ ОСАДКОВ</p>
+        <button class="button-start hover-button" id="play3" type="button">
+          <img class="hover-default" src="images/start-white.svg" alt="" />
+          <img
+            class="hover-alternative"
+            src="images/start-white-2.svg"
+            alt=""
+          />
+        </button>
+        <button class="button-stop hover-button" id="stop3" type="button">
+          <img class="hover-default" src="images/stop-white.svg" alt="" />
+          <img class="hover-alternative" src="images/stop-white-2.svg" alt="" />
+        </button>
+      </header>
       <div class="prc-sequencer">
         <div class="prc-row" data-instrument="thunder">
           <span class="prc-label">ГРОМ</span>
-
           <div class="prc-steps">
-            <button class="prc-step" aria-label="Гром, шаг 1"></button>
-            <button class="prc-step" aria-label="Гром, шаг 2"></button>
-            <button class="prc-step" aria-label="Гром, шаг 3"></button>
-            <button class="prc-step" aria-label="Гром, шаг 4"></button>
-            <button class="prc-step" aria-label="Гром, шаг 5"></button>
-            <button class="prc-step" aria-label="Гром, шаг 6"></button>
-            <button class="prc-step" aria-label="Гром, шаг 7"></button>
-            <button class="prc-step" aria-label="Гром, шаг 8"></button>
+            <button class="prc-step" id="thunder-step-1" type="button"></button>
+            <button class="prc-step" id="thunder-step-2" type="button"></button>
+            <button class="prc-step" id="thunder-step-3" type="button"></button>
+            <button class="prc-step" id="thunder-step-4" type="button"></button>
+            <button class="prc-step" id="thunder-step-5" type="button"></button>
+            <button class="prc-step" id="thunder-step-6" type="button"></button>
+            <button class="prc-step" id="thunder-step-7" type="button"></button>
+            <button class="prc-step" id="thunder-step-8" type="button"></button>
           </div>
         </div>
-
         <div class="prc-row" data-instrument="lightning">
           <span class="prc-label">МОЛНИЯ</span>
-
           <div class="prc-steps">
-            <button class="prc-step" aria-label="Молния, шаг 1"></button>
-            <button class="prc-step" aria-label="Молния, шаг 2"></button>
-            <button class="prc-step" aria-label="Молния, шаг 3"></button>
-            <button class="prc-step" aria-label="Молния, шаг 4"></button>
-            <button class="prc-step" aria-label="Молния, шаг 5"></button>
-            <button class="prc-step" aria-label="Молния, шаг 6"></button>
-            <button class="prc-step" aria-label="Молния, шаг 7"></button>
-            <button class="prc-step" aria-label="Молния, шаг 8"></button>
+            <button
+              class="prc-step"
+              id="lightning-step-1"
+              type="button"
+            ></button>
+            <button
+              class="prc-step"
+              id="lightning-step-2"
+              type="button"
+            ></button>
+            <button
+              class="prc-step"
+              id="lightning-step-3"
+              type="button"
+            ></button>
+            <button
+              class="prc-step"
+              id="lightning-step-4"
+              type="button"
+            ></button>
+            <button
+              class="prc-step"
+              id="lightning-step-5"
+              type="button"
+            ></button>
+            <button
+              class="prc-step"
+              id="lightning-step-6"
+              type="button"
+            ></button>
+            <button
+              class="prc-step"
+              id="lightning-step-7"
+              type="button"
+            ></button>
+            <button
+              class="prc-step"
+              id="lightning-step-8"
+              type="button"
+            ></button>
           </div>
         </div>
-
         <div class="prc-row" data-instrument="rain">
           <span class="prc-label">ДОЖДЬ</span>
-
           <div class="prc-steps">
-            <button class="prc-step" aria-label="Дождь, шаг 1"></button>
-            <button class="prc-step" aria-label="Дождь, шаг 2"></button>
-            <button class="prc-step" aria-label="Дождь, шаг 3"></button>
-            <button class="prc-step" aria-label="Дождь, шаг 4"></button>
-            <button class="prc-step" aria-label="Дождь, шаг 5"></button>
-            <button class="prc-step" aria-label="Дождь, шаг 6"></button>
-            <button class="prc-step" aria-label="Дождь, шаг 7"></button>
-            <button class="prc-step" aria-label="Дождь, шаг 8"></button>
+            <button class="prc-step" id="rain-step-1" type="button"></button>
+            <button class="prc-step" id="rain-step-2" type="button"></button>
+            <button class="prc-step" id="rain-step-3" type="button"></button>
+            <button class="prc-step" id="rain-step-4" type="button"></button>
+            <button class="prc-step" id="rain-step-5" type="button"></button>
+            <button class="prc-step" id="rain-step-6" type="button"></button>
+            <button class="prc-step" id="rain-step-7" type="button"></button>
+            <button class="prc-step" id="rain-step-8" type="button"></button>
           </div>
         </div>
       </div>
     </section>
-
-    <section class="forth_block" id="forth_block"></section>
-
-    <img class="x-down-right" src="./images/x.svg" alt="x" />
-    <img class="x-down-left" src="./images/x.svg" alt="x" />
+    <div class="global-controls" id="forth_block">
+      <button class="global-stop hover-button" id="stop-all" type="button">
+        <img class="hover-default" src="images/global-stop.svg" alt="" />
+        <img class="hover-alternative" src="images/stop-2.svg" alt="" />
+      </button>
+      <button class="global-start hover-button" id="play-all" type="button">
+        <img class="hover-default" src="images/global-start.svg" alt="" />
+        <img class="hover-alternative" src="images/start-1.svg" alt="" />
+      </button>
+    </div>
   </body>
 </html>
